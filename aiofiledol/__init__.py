@@ -1,6 +1,7 @@
 """
 aiofile (async filesys operations) with a simple (dict-like or list-like) interface
 """
+# TODO: Revise names to align with dol.filesys
 import asyncio
 import os
 
