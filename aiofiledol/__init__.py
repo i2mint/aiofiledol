@@ -9,6 +9,7 @@ from dol.base import KvReader, KvPersister
 from dol.paths import mk_relative_path_store
 from dol.filesys import (
     FileCollection,
+    LocalFileDeleteMixin,
     validate_key_and_raise_key_error_on_exception,
 )
 
@@ -62,8 +63,31 @@ class AioFileBytesReader(FileCollection, KvReader):
         #     return fp.read()
 
 
-class AioFileBytesPersister(AioFileBytesReader, KvPersister):
+class AioFileBytesPersister(LocalFileDeleteMixin, AioFileBytesReader, KvPersister):
+    """Async file persister with configurable deletion.
+
+    Examples:
+        >>> # Default: safe trash with warning on fallback
+        >>> store = AioFileBytesPersister(rootdir)
+
+        >>> # Permanent deletion without warnings
+        >>> from dol.trash import permanent_delete
+        >>> store = AioFileBytesPersister(rootdir, delete_func=permanent_delete)
+    """
     _write_open_kwargs = dict(mode="wb")
+
+    def __init__(self, *args, delete_func=None, **kwargs):
+        """Initialize async file persister.
+
+        Args:
+            *args: Passed to parent classes
+            delete_func: Optional custom deletion function.
+                If None, uses class default (safe trash with fallback).
+            **kwargs: Passed to parent classes
+        """
+        super().__init__(*args, **kwargs)
+        if delete_func is not None:
+            self._delete_func = delete_func
 
     @validate_key_and_raise_key_error_on_exception
     async def asetitem(self, k, v):
@@ -91,10 +115,6 @@ class AioFileBytesPersister(AioFileBytesReader, KvPersister):
 
     def __setitem__(self, k, v):
         return asyncio.create_task(self.asetitem(k, v))
-
-    @validate_key_and_raise_key_error_on_exception
-    def __delitem__(self, k):
-        os.remove(k)
 
     # @validate_key_and_raise_key_error_on_exception
     # def __setitem__(self, k, v):
