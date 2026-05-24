@@ -1,6 +1,7 @@
 """
 aiofile (async filesys operations) with a simple (dict-like or list-like) interface
 """
+
 # TODO: Revise names to align with dol.filesys
 import asyncio
 import os
@@ -15,7 +16,9 @@ from dol.filesys import (
 
 from aiofile import AIOFile  # pip install aiofile
 
-_dflt_not_valid_error_msg = "Key not valid (usually because does not exist or access not permitted): {}"
+_dflt_not_valid_error_msg = (
+    "Key not valid (usually because does not exist or access not permitted): {}"
+)
 _dflt_not_found_error_msg = "Key not found: {}"
 
 
@@ -55,9 +58,7 @@ class AioFileBytesReader(FileCollection, KvReader):
         """
 
         async with AIOFile(k, **self._read_open_kwargs) as fp:
-            v = (
-                await fp.read()
-            )  # Question: Is it faster if we just did `return await fp.read(), instead of assign?
+            v = await fp.read()  # Question: Is it faster if we just did `return await fp.read(), instead of assign?
         return v
         # with open(k, **self._read_open_kwargs) as fp:
         #     return fp.read()
@@ -74,6 +75,7 @@ class AioFileBytesPersister(LocalFileDeleteMixin, AioFileBytesReader, KvPersiste
         >>> from dol.trash import permanent_delete
         >>> store = AioFileBytesPersister(rootdir, delete_func=permanent_delete)
     """
+
     _write_open_kwargs = dict(mode="wb")
 
     def __init__(self, *args, delete_func=None, **kwargs):
@@ -134,9 +136,7 @@ class AioFileStringReader(AioFileBytesReader):
 
 
 class AioFileStringPersister(AioFileBytesPersister):
-    _write_open_kwargs = dict(
-        AioFileBytesPersister._write_open_kwargs, mode="wt"
-    )
+    _write_open_kwargs = dict(AioFileBytesPersister._write_open_kwargs, mode="wt")
 
 
 RelPathFileStringReader = mk_relative_path_store(
