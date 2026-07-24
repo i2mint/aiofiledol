@@ -1,0 +1,4 @@
+aiofiledol
+==========
+.. automodule:: aiofiledol
+   :members:

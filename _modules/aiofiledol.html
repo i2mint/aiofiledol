@@ -1,0 +1,261 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aiofiledol &mdash; aiofiledol 0.0.6 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1fd71caa"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/toggleprompt.js?v=d7ede5d2"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            aiofiledol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../module_docs/aiofiledol.html">aiofiledol</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">aiofiledol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">aiofiledol</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for aiofiledol</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">aiofile (async filesys operations) with a simple (dict-like or list-like) interface</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># TODO: Revise names to align with dol.filesys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dol.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">KvReader</span><span class="p">,</span> <span class="n">KvPersister</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dol.paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">mk_relative_path_store</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dol.filesys</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">FileCollection</span><span class="p">,</span>
+    <span class="n">LocalFileDeleteMixin</span><span class="p">,</span>
+    <span class="n">validate_key_and_raise_key_error_on_exception</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">aiofile</span><span class="w"> </span><span class="kn">import</span> <span class="n">AIOFile</span>  <span class="c1"># pip install aiofile</span>
+
+<span class="n">_dflt_not_valid_error_msg</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;Key not valid (usually because does not exist or access not permitted): </span><span class="si">{}</span><span class="s2">&quot;</span>
+<span class="p">)</span>
+<span class="n">_dflt_not_found_error_msg</span> <span class="o">=</span> <span class="s2">&quot;Key not found: </span><span class="si">{}</span><span class="s2">&quot;</span>
+
+
+<div class="viewcode-block" id="AioFileBytesReader">
+<a class="viewcode-back" href="../module_docs/aiofiledol.html#aiofiledol.AioFileBytesReader">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AioFileBytesReader</span><span class="p">(</span><span class="n">FileCollection</span><span class="p">,</span> <span class="n">KvReader</span><span class="p">):</span>
+    <span class="n">_read_open_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+
+    <span class="fm">__getitem__</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># @validate_key_and_raise_key_error_on_exception  # TODO: does this also wrap the async?</span>
+<div class="viewcode-block" id="AioFileBytesReader.aget">
+<a class="viewcode-back" href="../module_docs/aiofiledol.html#aiofiledol.AioFileBytesReader.aget">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">aget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>  <span class="c1"># noqa</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the bytes contents of the file ``k``.</span>
+
+<span class="sd">        Async examples are driven with ``asyncio.run`` so they run under a</span>
+<span class="sd">        plain ``--doctest-modules`` collection (top-level ``await`` is a</span>
+<span class="sd">        syntax error in doctests).</span>
+
+<span class="sd">        &gt;&gt;&gt; import asyncio, os</span>
+<span class="sd">        &gt;&gt;&gt; from dol.filesys import mk_tmp_dol_dir</span>
+<span class="sd">        &gt;&gt;&gt; rootdir = mk_tmp_dol_dir(&#39;aiofiledol_test&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; filepath = os.path.join(rootdir, &#39;greeting&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; with open(filepath, &#39;wb&#39;) as fp:</span>
+<span class="sd">        ...     _ = fp.write(b&#39;hello world&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s = AioFileBytesReader(rootdir, max_levels=0)</span>
+<span class="sd">        &gt;&gt;&gt; asyncio.run(s.aget(filepath))</span>
+<span class="sd">        b&#39;hello world&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">async</span> <span class="k">with</span> <span class="n">AIOFile</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_open_kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="k">await</span> <span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>  <span class="c1"># Question: Is it faster if we just did `return await fp.read(), instead of assign?</span>
+        <span class="k">return</span> <span class="n">v</span></div>
+</div>
+
+        <span class="c1"># with open(k, **self._read_open_kwargs) as fp:</span>
+        <span class="c1">#     return fp.read()</span>
+
+
+<div class="viewcode-block" id="AioFileBytesPersister">
+<a class="viewcode-back" href="../module_docs/aiofiledol.html#aiofiledol.AioFileBytesPersister">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AioFileBytesPersister</span><span class="p">(</span><span class="n">LocalFileDeleteMixin</span><span class="p">,</span> <span class="n">AioFileBytesReader</span><span class="p">,</span> <span class="n">KvPersister</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Async file persister with configurable deletion.</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; from dol.filesys import mk_tmp_dol_dir</span>
+<span class="sd">        &gt;&gt;&gt; rootdir = mk_tmp_dol_dir(&#39;aiofiledol_test&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # Default: safe trash with warning on fallback</span>
+<span class="sd">        &gt;&gt;&gt; store = AioFileBytesPersister(rootdir)</span>
+<span class="sd">        &gt;&gt;&gt; # Permanent deletion without warnings</span>
+<span class="sd">        &gt;&gt;&gt; from dol.trash import permanent_delete</span>
+<span class="sd">        &gt;&gt;&gt; store = AioFileBytesPersister(rootdir, delete_func=permanent_delete)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_write_open_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">delete_func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize async file persister.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            *args: Passed to parent classes</span>
+<span class="sd">            delete_func: Optional custom deletion function.</span>
+<span class="sd">                If None, uses class default (safe trash with fallback).</span>
+<span class="sd">            **kwargs: Passed to parent classes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">delete_func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_delete_func</span> <span class="o">=</span> <span class="n">delete_func</span>
+
+<div class="viewcode-block" id="AioFileBytesPersister.asetitem">
+<a class="viewcode-back" href="../module_docs/aiofiledol.html#aiofiledol.AioFileBytesPersister.asetitem">[docs]</a>
+    <span class="nd">@validate_key_and_raise_key_error_on_exception</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">asetitem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write bytes ``v`` to the file at key ``k`` (async).</span>
+
+<span class="sd">        &gt;&gt;&gt; import asyncio, os</span>
+<span class="sd">        &gt;&gt;&gt; from dol.filesys import mk_tmp_dol_dir</span>
+<span class="sd">        &gt;&gt;&gt; rootdir = mk_tmp_dol_dir(&#39;aiofiledol_test&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; rpath = lambda *p: os.path.join(rootdir, *p)</span>
+<span class="sd">        &gt;&gt;&gt; s = AioFileBytesPersister(rootdir)</span>
+<span class="sd">        &gt;&gt;&gt; k = rpath(&#39;foo&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; if k in s:</span>
+<span class="sd">        ...     del s[k]  # delete key if present</span>
+<span class="sd">        &gt;&gt;&gt; n = len(s)  # number of items in store</span>
+<span class="sd">        &gt;&gt;&gt; asyncio.run(s.asetitem(k, b&#39;bar&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; len(s) == n + 1  # there&#39;s one more item in store</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; k in s</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; asyncio.run(s.aget(k))  # read it back (async reader; __getitem__ is disabled)</span>
+<span class="sd">        b&#39;bar&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="n">AIOFile</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_write_open_kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">fp</span><span class="o">.</span><span class="n">fsync</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">asetitem</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span></div>
+
+
+    <span class="c1"># @validate_key_and_raise_key_error_on_exception</span>
+    <span class="c1"># def __setitem__(self, k, v):</span>
+    <span class="c1">#     with open(k, **self._write_open_kwargs) as fp:</span>
+    <span class="c1">#         return fp.write(v)</span>
+
+
+<span class="n">RelPathAioFileBytesReader</span> <span class="o">=</span> <span class="n">mk_relative_path_store</span><span class="p">(</span>
+    <span class="n">AioFileBytesReader</span><span class="p">,</span>
+    <span class="n">prefix_attr</span><span class="o">=</span><span class="s2">&quot;rootdir&quot;</span><span class="p">,</span>
+    <span class="vm">__name__</span><span class="o">=</span><span class="s2">&quot;RelPathAioFileBytesReader&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="AioFileStringReader">
+<a class="viewcode-back" href="../module_docs/aiofiledol.html#aiofiledol.AioFileStringReader">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AioFileStringReader</span><span class="p">(</span><span class="n">AioFileBytesReader</span><span class="p">):</span>
+    <span class="n">_read_open_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">AioFileBytesReader</span><span class="o">.</span><span class="n">_read_open_kwargs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;rt&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AioFileStringPersister">
+<a class="viewcode-back" href="../module_docs/aiofiledol.html#aiofiledol.AioFileStringPersister">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AioFileStringPersister</span><span class="p">(</span><span class="n">AioFileBytesPersister</span><span class="p">):</span>
+    <span class="n">_write_open_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">AioFileBytesPersister</span><span class="o">.</span><span class="n">_write_open_kwargs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;wt&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="n">RelPathFileStringReader</span> <span class="o">=</span> <span class="n">mk_relative_path_store</span><span class="p">(</span>
+    <span class="n">AioFileStringReader</span><span class="p">,</span>
+    <span class="n">prefix_attr</span><span class="o">=</span><span class="s2">&quot;rootdir&quot;</span><span class="p">,</span>
+    <span class="vm">__name__</span><span class="o">=</span><span class="s2">&quot;RelPathFileStringReader&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
