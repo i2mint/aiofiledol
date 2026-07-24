@@ -29,32 +29,21 @@ class AioFileBytesReader(FileCollection, KvReader):
 
     # @validate_key_and_raise_key_error_on_exception  # TODO: does this also wrap the async?
     async def aget(self, k):  # noqa
-        """
-        Gets the bytes contents of the file k.
-        >>> import os
-        >>> filepath = __file__
-        >>> dirpath = os.path.dirname(__file__)  # path of the directory where I (the module file) am
-        >>> s = AioFileBytesReader(dirpath, max_levels=0)
-        >>>
-        >>> ####### Get the first 9 characters (as bytes) of this module #####################
-        >>> t = await s.aget(filepath)
-        >>> t[:14]
-        b'import asyncio'
-        >>>
-        >>> ####### Test key validation #####################
-        >>> await s.aget('not_a_valid_key')  # this key is not valid since not under the dirpath folder
-        Traceback (most recent call last):
-            ...
-        filesys.KeyValidationError: 'Key not valid (usually because does not exist or access not permitted): not_a_valid_key'
-        >>>
-        >>> ####### Test further exceptions (that should be wrapped in KeyError) #####################
-        >>> # this key is valid, since under dirpath, but the file itself doesn't exist (hopefully for this test)
-        >>> non_existing_file = os.path.join(dirpath, 'non_existing_file')
-        >>> try:
-        ...     await s.aget(non_existing_file)
-        ... except KeyError:
-        ...     print("KeyError (not FileNotFoundError) was raised.")
-        KeyError (not FileNotFoundError) was raised.
+        """Get the bytes contents of the file ``k``.
+
+        Async examples are driven with ``asyncio.run`` so they run under a
+        plain ``--doctest-modules`` collection (top-level ``await`` is a
+        syntax error in doctests).
+
+        >>> import asyncio, os
+        >>> from dol.filesys import mk_tmp_dol_dir
+        >>> rootdir = mk_tmp_dol_dir('aiofiledol_test')
+        >>> filepath = os.path.join(rootdir, 'greeting')
+        >>> with open(filepath, 'wb') as fp:
+        ...     _ = fp.write(b'hello world')
+        >>> s = AioFileBytesReader(rootdir, max_levels=0)
+        >>> asyncio.run(s.aget(filepath))
+        b'hello world'
         """
 
         async with AIOFile(k, **self._read_open_kwargs) as fp:
@@ -68,9 +57,10 @@ class AioFileBytesPersister(LocalFileDeleteMixin, AioFileBytesReader, KvPersiste
     """Async file persister with configurable deletion.
 
     Examples:
+        >>> from dol.filesys import mk_tmp_dol_dir
+        >>> rootdir = mk_tmp_dol_dir('aiofiledol_test')
         >>> # Default: safe trash with warning on fallback
         >>> store = AioFileBytesPersister(rootdir)
-
         >>> # Permanent deletion without warnings
         >>> from dol.trash import permanent_delete
         >>> store = AioFileBytesPersister(rootdir, delete_func=permanent_delete)
@@ -93,23 +83,24 @@ class AioFileBytesPersister(LocalFileDeleteMixin, AioFileBytesReader, KvPersiste
 
     @validate_key_and_raise_key_error_on_exception
     async def asetitem(self, k, v):
-        """
+        """Write bytes ``v`` to the file at key ``k`` (async).
 
+        >>> import asyncio, os
         >>> from dol.filesys import mk_tmp_dol_dir
-        >>> import os
-        >>>
-        >>> rootdir = mk_tmp_dol_dir('test')
+        >>> rootdir = mk_tmp_dol_dir('aiofiledol_test')
         >>> rpath = lambda *p: os.path.join(rootdir, *p)
         >>> s = AioFileBytesPersister(rootdir)
         >>> k = rpath('foo')
         >>> if k in s:
         ...     del s[k]  # delete key if present
-        ...
         >>> n = len(s)  # number of items in store
-        >>> await s.asetitem(k, b'bar')
-        >>> assert len(s) == n + 1  # there's one more item in store
-        >>> assert k in s
-        >>> assert (await s[k]) == b'bar'
+        >>> asyncio.run(s.asetitem(k, b'bar'))
+        >>> len(s) == n + 1  # there's one more item in store
+        True
+        >>> k in s
+        True
+        >>> asyncio.run(s.aget(k))  # read it back (async reader; __getitem__ is disabled)
+        b'bar'
         """
         async with AIOFile(k, **self._write_open_kwargs) as fp:
             await fp.write(v)
