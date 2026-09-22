@@ -2,7 +2,7 @@
 
 # About this build
 
-This documentation was built on **2026-09-22 12:50 UTC** from commit <a href="https://github.com/i2mint/aiofiledol/commit/14a2ad8e2f99d834c3743d8aaec64d1285d74693"><code>14a2ad8</code></a> on branch <code>master</code>, for **aiofiledol 0.0.7** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-22 14:15 UTC** from commit <a href="https://github.com/i2mint/aiofiledol/commit/d11723bfedc36ba983f426ca07559b93d4bd0c97"><code>d11723b</code></a> on branch <code>master</code>, for **aiofiledol 0.0.8** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -11,7 +11,7 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                          |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/aiofiledol/commit/14a2ad8e2f99d834c3743d8aaec64d1285d74693"><code>14a2ad8e2f99d834c3743d8aaec64d1285d74693</code></a> |
+| Commit              | <a href="https://github.com/i2mint/aiofiledol/commit/d11723bfedc36ba983f426ca07559b93d4bd0c97"><code>d11723bfedc36ba983f426ca07559b93d4bd0c97</code></a> |
 | Branch              | <code>master</code>                                                                                                                                      |
 | Tags at this commit | none                                                                                                                                                     |
 | Working tree        | clean                                                                                                                                                    |
@@ -22,9 +22,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/aiofiledol</code>                                                             |
-| Run          | <a href="https://github.com/i2mint/aiofiledol/actions/runs/35729484723">35729484723</a>    |
+| Run          | <a href="https://github.com/i2mint/aiofiledol/actions/runs/35738847715">35738847715</a>    |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>14a2ad8e2f99d834c3743d8aaec64d1285d74693</code> (in the history of the built commit) |
+| Event commit | <code>d11723bfedc36ba983f426ca07559b93d4bd0c97</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49,13 +49,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/aiofiledol/0.0.7/">0.0.7</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/aiofiledol/0.0.8/">0.0.8</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/aiofiledol && cd aiofiledol
-git checkout 14a2ad8e2f99d834c3743d8aaec64d1285d74693
+git checkout d11723bfedc36ba983f426ca07559b93d4bd0c97
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

@@ -195,141 +195,151 @@
 </span><span id="line-36"><span class="sd">    This REPLACES ``store._id_of_key(k)`` -- it walks the whole chain including the</span>
 </span><span id="line-37"><span class="sd">    leaf, so the two must never be composed. For an un-wrapped store no layer defines</span>
 </span><span id="line-38"><span class="sd">    ``_id_of_key`` and ``k`` is returned verbatim.</span>
-</span><span id="line-39"><span class="sd">    """</span>
-</span><span id="line-40">    <span class="k">return</span> <span class="n">inner_most_key</span><span class="p">(</span><span class="n">wrapped_self</span><span class="p">(</span><span class="n">store</span><span class="p">),</span> <span class="n">k</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
-</span><span id="line-41">
-</span><span id="line-42">
+</span><span id="line-39">
+</span><span id="line-40"><span class="sd">    A key the store itself already accepts (a path under its ``rootdir``) is also</span>
+</span><span id="line-41"><span class="sd">    taken verbatim. ``wrapped_self`` cannot tell whether a method was reached through</span>
+</span><span id="line-42"><span class="sd">    a wrapper or called on the inner store directly, so without this guard merely</span>
+</span><span id="line-43"><span class="sd">    WRAPPING an instance -- ``wrap_kvs(bare_store, ...)`` -- would make that instance's</span>
+</span><span id="line-44"><span class="sd">    own absolute-key ``aget``/``asetitem`` push the key through the wrapper's</span>
+</span><span id="line-45"><span class="sd">    ``id_of_key`` a second time (``rootdir + rootdir + name``). Relative keys never</span>
+</span><span id="line-46"><span class="sd">    match an absolute ``rootdir`` pattern, so they still get resolved.</span>
+</span><span id="line-47"><span class="sd">    """</span>
+</span><span id="line-48">    <span class="k">if</span> <span class="n">store</span><span class="o">.</span><span class="n">is_valid_key</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+</span><span id="line-49">        <span class="k">return</span> <span class="n">k</span>
+</span><span id="line-50">    <span class="k">return</span> <span class="n">inner_most_key</span><span class="p">(</span><span class="n">wrapped_self</span><span class="p">(</span><span class="n">store</span><span class="p">),</span> <span class="n">k</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+</span><span id="line-51">
+</span><span id="line-52">
 <div class="viewcode-block" id="AioFileBytesReader">
 <a class="viewcode-back" href="../_autosummary/aiofiledol.html#aiofiledol.AioFileBytesReader">[docs]</a>
-</span><span id="line-43"><span class="k">class</span><span class="w"> </span><span class="nc">AioFileBytesReader</span><span class="p">(</span><span class="n">FileCollection</span><span class="p">,</span> <span class="n">KvReader</span><span class="p">):</span>
-</span><span id="line-44">    <span class="n">_read_open_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"rb"</span><span class="p">)</span>
-</span><span id="line-45">
-</span><span id="line-46">    <span class="fm">__getitem__</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="line-47">
-</span><span id="line-48">    <span class="c1"># @validate_key_and_raise_key_error_on_exception  # TODO: does this also wrap the async?</span>
+</span><span id="line-53"><span class="k">class</span><span class="w"> </span><span class="nc">AioFileBytesReader</span><span class="p">(</span><span class="n">FileCollection</span><span class="p">,</span> <span class="n">KvReader</span><span class="p">):</span>
+</span><span id="line-54">    <span class="n">_read_open_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"rb"</span><span class="p">)</span>
+</span><span id="line-55">
+</span><span id="line-56">    <span class="fm">__getitem__</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="line-57">
+</span><span id="line-58">    <span class="c1"># @validate_key_and_raise_key_error_on_exception  # TODO: does this also wrap the async?</span>
 <div class="viewcode-block" id="AioFileBytesReader.aget">
 <a class="viewcode-back" href="../_autosummary/aiofiledol.html#aiofiledol.AioFileBytesReader.aget">[docs]</a>
-</span><span id="line-49">    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">aget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>  <span class="c1"># noqa</span>
-</span><span id="line-50"><span class="w">        </span><span class="sd">"""Get the bytes contents of the file ``k``.</span>
-</span><span id="line-51">
-</span><span id="line-52"><span class="sd">        Async examples are driven with ``asyncio.run`` so they run under a</span>
-</span><span id="line-53"><span class="sd">        plain ``--doctest-modules`` collection (top-level ``await`` is a</span>
-</span><span id="line-54"><span class="sd">        syntax error in doctests).</span>
-</span><span id="line-55">
-</span><span id="line-56"><span class="sd">        &gt;&gt;&gt; import asyncio, os</span>
-</span><span id="line-57"><span class="sd">        &gt;&gt;&gt; from dol.filesys import mk_tmp_dol_dir</span>
-</span><span id="line-58"><span class="sd">        &gt;&gt;&gt; rootdir = mk_tmp_dol_dir('aiofiledol_test')</span>
-</span><span id="line-59"><span class="sd">        &gt;&gt;&gt; filepath = os.path.join(rootdir, 'greeting')</span>
-</span><span id="line-60"><span class="sd">        &gt;&gt;&gt; with open(filepath, 'wb') as fp:</span>
-</span><span id="line-61"><span class="sd">        ...     _ = fp.write(b'hello world')</span>
-</span><span id="line-62"><span class="sd">        &gt;&gt;&gt; s = AioFileBytesReader(rootdir, max_levels=0)</span>
-</span><span id="line-63"><span class="sd">        &gt;&gt;&gt; asyncio.run(s.aget(filepath))</span>
-</span><span id="line-64"><span class="sd">        b'hello world'</span>
-</span><span id="line-65"><span class="sd">        """</span>
-</span><span id="line-66">
-</span><span id="line-67">        <span class="k">async</span> <span class="k">with</span> <span class="n">AIOFile</span><span class="p">(</span><span class="n">_resolve_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_open_kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
-</span><span id="line-68">            <span class="n">v</span> <span class="o">=</span> <span class="k">await</span> <span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>  <span class="c1"># Question: Is it faster if we just did `return await fp.read(), instead of assign?</span>
-</span><span id="line-69">        <span class="k">return</span> <span class="n">v</span></div>
+</span><span id="line-59">    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">aget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>  <span class="c1"># noqa</span>
+</span><span id="line-60"><span class="w">        </span><span class="sd">"""Get the bytes contents of the file ``k``.</span>
+</span><span id="line-61">
+</span><span id="line-62"><span class="sd">        Async examples are driven with ``asyncio.run`` so they run under a</span>
+</span><span id="line-63"><span class="sd">        plain ``--doctest-modules`` collection (top-level ``await`` is a</span>
+</span><span id="line-64"><span class="sd">        syntax error in doctests).</span>
+</span><span id="line-65">
+</span><span id="line-66"><span class="sd">        &gt;&gt;&gt; import asyncio, os</span>
+</span><span id="line-67"><span class="sd">        &gt;&gt;&gt; from dol.filesys import mk_tmp_dol_dir</span>
+</span><span id="line-68"><span class="sd">        &gt;&gt;&gt; rootdir = mk_tmp_dol_dir('aiofiledol_test')</span>
+</span><span id="line-69"><span class="sd">        &gt;&gt;&gt; filepath = os.path.join(rootdir, 'greeting')</span>
+</span><span id="line-70"><span class="sd">        &gt;&gt;&gt; with open(filepath, 'wb') as fp:</span>
+</span><span id="line-71"><span class="sd">        ...     _ = fp.write(b'hello world')</span>
+</span><span id="line-72"><span class="sd">        &gt;&gt;&gt; s = AioFileBytesReader(rootdir, max_levels=0)</span>
+</span><span id="line-73"><span class="sd">        &gt;&gt;&gt; asyncio.run(s.aget(filepath))</span>
+</span><span id="line-74"><span class="sd">        b'hello world'</span>
+</span><span id="line-75"><span class="sd">        """</span>
+</span><span id="line-76">
+</span><span id="line-77">        <span class="k">async</span> <span class="k">with</span> <span class="n">AIOFile</span><span class="p">(</span><span class="n">_resolve_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_open_kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+</span><span id="line-78">            <span class="n">v</span> <span class="o">=</span> <span class="k">await</span> <span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>  <span class="c1"># Question: Is it faster if we just did `return await fp.read(), instead of assign?</span>
+</span><span id="line-79">        <span class="k">return</span> <span class="n">v</span></div>
 </div>
 
-</span><span id="line-70">        <span class="c1"># with open(k, **self._read_open_kwargs) as fp:</span>
-</span><span id="line-71">        <span class="c1">#     return fp.read()</span>
-</span><span id="line-72">
-</span><span id="line-73">
+</span><span id="line-80">        <span class="c1"># with open(k, **self._read_open_kwargs) as fp:</span>
+</span><span id="line-81">        <span class="c1">#     return fp.read()</span>
+</span><span id="line-82">
+</span><span id="line-83">
 <div class="viewcode-block" id="AioFileBytesPersister">
 <a class="viewcode-back" href="../_autosummary/aiofiledol.html#aiofiledol.AioFileBytesPersister">[docs]</a>
-</span><span id="line-74"><span class="k">class</span><span class="w"> </span><span class="nc">AioFileBytesPersister</span><span class="p">(</span><span class="n">LocalFileDeleteMixin</span><span class="p">,</span> <span class="n">AioFileBytesReader</span><span class="p">,</span> <span class="n">KvPersister</span><span class="p">):</span>
-</span><span id="line-75"><span class="w">    </span><span class="sd">"""Async file persister with configurable deletion.</span>
-</span><span id="line-76">
-</span><span id="line-77"><span class="sd">    Examples:</span>
-</span><span id="line-78"><span class="sd">        &gt;&gt;&gt; from dol.filesys import mk_tmp_dol_dir</span>
-</span><span id="line-79"><span class="sd">        &gt;&gt;&gt; rootdir = mk_tmp_dol_dir('aiofiledol_test')</span>
-</span><span id="line-80"><span class="sd">        &gt;&gt;&gt; # Default: safe trash with warning on fallback</span>
-</span><span id="line-81"><span class="sd">        &gt;&gt;&gt; store = AioFileBytesPersister(rootdir)</span>
-</span><span id="line-82"><span class="sd">        &gt;&gt;&gt; # Permanent deletion without warnings</span>
-</span><span id="line-83"><span class="sd">        &gt;&gt;&gt; from dol.trash import permanent_delete</span>
-</span><span id="line-84"><span class="sd">        &gt;&gt;&gt; store = AioFileBytesPersister(rootdir, delete_func=permanent_delete)</span>
-</span><span id="line-85"><span class="sd">    """</span>
+</span><span id="line-84"><span class="k">class</span><span class="w"> </span><span class="nc">AioFileBytesPersister</span><span class="p">(</span><span class="n">LocalFileDeleteMixin</span><span class="p">,</span> <span class="n">AioFileBytesReader</span><span class="p">,</span> <span class="n">KvPersister</span><span class="p">):</span>
+</span><span id="line-85"><span class="w">    </span><span class="sd">"""Async file persister with configurable deletion.</span>
 </span><span id="line-86">
-</span><span id="line-87">    <span class="n">_write_open_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wb"</span><span class="p">)</span>
-</span><span id="line-88">
-</span><span id="line-89">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">delete_func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span id="line-90"><span class="w">        </span><span class="sd">"""Initialize async file persister.</span>
-</span><span id="line-91">
-</span><span id="line-92"><span class="sd">        Args:</span>
-</span><span id="line-93"><span class="sd">            *args: Passed to parent classes</span>
-</span><span id="line-94"><span class="sd">            delete_func: Optional custom deletion function.</span>
-</span><span id="line-95"><span class="sd">                If None, uses class default (safe trash with fallback).</span>
-</span><span id="line-96"><span class="sd">            **kwargs: Passed to parent classes</span>
-</span><span id="line-97"><span class="sd">        """</span>
-</span><span id="line-98">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="line-99">        <span class="k">if</span> <span class="n">delete_func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="line-100">            <span class="bp">self</span><span class="o">.</span><span class="n">_delete_func</span> <span class="o">=</span> <span class="n">delete_func</span>
+</span><span id="line-87"><span class="sd">    Examples:</span>
+</span><span id="line-88"><span class="sd">        &gt;&gt;&gt; from dol.filesys import mk_tmp_dol_dir</span>
+</span><span id="line-89"><span class="sd">        &gt;&gt;&gt; rootdir = mk_tmp_dol_dir('aiofiledol_test')</span>
+</span><span id="line-90"><span class="sd">        &gt;&gt;&gt; # Default: safe trash with warning on fallback</span>
+</span><span id="line-91"><span class="sd">        &gt;&gt;&gt; store = AioFileBytesPersister(rootdir)</span>
+</span><span id="line-92"><span class="sd">        &gt;&gt;&gt; # Permanent deletion without warnings</span>
+</span><span id="line-93"><span class="sd">        &gt;&gt;&gt; from dol.trash import permanent_delete</span>
+</span><span id="line-94"><span class="sd">        &gt;&gt;&gt; store = AioFileBytesPersister(rootdir, delete_func=permanent_delete)</span>
+</span><span id="line-95"><span class="sd">    """</span>
+</span><span id="line-96">
+</span><span id="line-97">    <span class="n">_write_open_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wb"</span><span class="p">)</span>
+</span><span id="line-98">
+</span><span id="line-99">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">delete_func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="line-100"><span class="w">        </span><span class="sd">"""Initialize async file persister.</span>
 </span><span id="line-101">
+</span><span id="line-102"><span class="sd">        Args:</span>
+</span><span id="line-103"><span class="sd">            *args: Passed to parent classes</span>
+</span><span id="line-104"><span class="sd">            delete_func: Optional custom deletion function.</span>
+</span><span id="line-105"><span class="sd">                If None, uses class default (safe trash with fallback).</span>
+</span><span id="line-106"><span class="sd">            **kwargs: Passed to parent classes</span>
+</span><span id="line-107"><span class="sd">        """</span>
+</span><span id="line-108">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="line-109">        <span class="k">if</span> <span class="n">delete_func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="line-110">            <span class="bp">self</span><span class="o">.</span><span class="n">_delete_func</span> <span class="o">=</span> <span class="n">delete_func</span>
+</span><span id="line-111">
 <div class="viewcode-block" id="AioFileBytesPersister.asetitem">
 <a class="viewcode-back" href="../_autosummary/aiofiledol.html#aiofiledol.AioFileBytesPersister.asetitem">[docs]</a>
-</span><span id="line-102">    <span class="nd">@validate_key_and_raise_key_error_on_exception</span>
-</span><span id="line-103">    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">asetitem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-</span><span id="line-104"><span class="w">        </span><span class="sd">"""Write bytes ``v`` to the file at key ``k`` (async).</span>
-</span><span id="line-105">
-</span><span id="line-106"><span class="sd">        &gt;&gt;&gt; import asyncio, os</span>
-</span><span id="line-107"><span class="sd">        &gt;&gt;&gt; from dol.filesys import mk_tmp_dol_dir</span>
-</span><span id="line-108"><span class="sd">        &gt;&gt;&gt; rootdir = mk_tmp_dol_dir('aiofiledol_test')</span>
-</span><span id="line-109"><span class="sd">        &gt;&gt;&gt; rpath = lambda *p: os.path.join(rootdir, *p)</span>
-</span><span id="line-110"><span class="sd">        &gt;&gt;&gt; s = AioFileBytesPersister(rootdir)</span>
-</span><span id="line-111"><span class="sd">        &gt;&gt;&gt; k = rpath('foo')</span>
-</span><span id="line-112"><span class="sd">        &gt;&gt;&gt; if k in s:</span>
-</span><span id="line-113"><span class="sd">        ...     del s[k]  # delete key if present</span>
-</span><span id="line-114"><span class="sd">        &gt;&gt;&gt; n = len(s)  # number of items in store</span>
-</span><span id="line-115"><span class="sd">        &gt;&gt;&gt; asyncio.run(s.asetitem(k, b'bar'))</span>
-</span><span id="line-116"><span class="sd">        &gt;&gt;&gt; len(s) == n + 1  # there's one more item in store</span>
-</span><span id="line-117"><span class="sd">        True</span>
-</span><span id="line-118"><span class="sd">        &gt;&gt;&gt; k in s</span>
-</span><span id="line-119"><span class="sd">        True</span>
-</span><span id="line-120"><span class="sd">        &gt;&gt;&gt; asyncio.run(s.aget(k))  # read it back (async reader; __getitem__ is disabled)</span>
-</span><span id="line-121"><span class="sd">        b'bar'</span>
-</span><span id="line-122"><span class="sd">        """</span>
-</span><span id="line-123">        <span class="k">async</span> <span class="k">with</span> <span class="n">AIOFile</span><span class="p">(</span><span class="n">_resolve_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_write_open_kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
-</span><span id="line-124">            <span class="k">await</span> <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-</span><span id="line-125">            <span class="k">await</span> <span class="n">fp</span><span class="o">.</span><span class="n">fsync</span><span class="p">()</span></div>
+</span><span id="line-112">    <span class="nd">@validate_key_and_raise_key_error_on_exception</span>
+</span><span id="line-113">    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">asetitem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+</span><span id="line-114"><span class="w">        </span><span class="sd">"""Write bytes ``v`` to the file at key ``k`` (async).</span>
+</span><span id="line-115">
+</span><span id="line-116"><span class="sd">        &gt;&gt;&gt; import asyncio, os</span>
+</span><span id="line-117"><span class="sd">        &gt;&gt;&gt; from dol.filesys import mk_tmp_dol_dir</span>
+</span><span id="line-118"><span class="sd">        &gt;&gt;&gt; rootdir = mk_tmp_dol_dir('aiofiledol_test')</span>
+</span><span id="line-119"><span class="sd">        &gt;&gt;&gt; rpath = lambda *p: os.path.join(rootdir, *p)</span>
+</span><span id="line-120"><span class="sd">        &gt;&gt;&gt; s = AioFileBytesPersister(rootdir)</span>
+</span><span id="line-121"><span class="sd">        &gt;&gt;&gt; k = rpath('foo')</span>
+</span><span id="line-122"><span class="sd">        &gt;&gt;&gt; if k in s:</span>
+</span><span id="line-123"><span class="sd">        ...     del s[k]  # delete key if present</span>
+</span><span id="line-124"><span class="sd">        &gt;&gt;&gt; n = len(s)  # number of items in store</span>
+</span><span id="line-125"><span class="sd">        &gt;&gt;&gt; asyncio.run(s.asetitem(k, b'bar'))</span>
+</span><span id="line-126"><span class="sd">        &gt;&gt;&gt; len(s) == n + 1  # there's one more item in store</span>
+</span><span id="line-127"><span class="sd">        True</span>
+</span><span id="line-128"><span class="sd">        &gt;&gt;&gt; k in s</span>
+</span><span id="line-129"><span class="sd">        True</span>
+</span><span id="line-130"><span class="sd">        &gt;&gt;&gt; asyncio.run(s.aget(k))  # read it back (async reader; __getitem__ is disabled)</span>
+</span><span id="line-131"><span class="sd">        b'bar'</span>
+</span><span id="line-132"><span class="sd">        """</span>
+</span><span id="line-133">        <span class="k">async</span> <span class="k">with</span> <span class="n">AIOFile</span><span class="p">(</span><span class="n">_resolve_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_write_open_kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+</span><span id="line-134">            <span class="k">await</span> <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+</span><span id="line-135">            <span class="k">await</span> <span class="n">fp</span><span class="o">.</span><span class="n">fsync</span><span class="p">()</span></div>
 
-</span><span id="line-126">
-</span><span id="line-127">    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-</span><span id="line-128">        <span class="k">return</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">asetitem</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span></div>
+</span><span id="line-136">
+</span><span id="line-137">    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+</span><span id="line-138">        <span class="k">return</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">asetitem</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span></div>
 
-</span><span id="line-129">
-</span><span id="line-130">    <span class="c1"># @validate_key_and_raise_key_error_on_exception</span>
-</span><span id="line-131">    <span class="c1"># def __setitem__(self, k, v):</span>
-</span><span id="line-132">    <span class="c1">#     with open(k, **self._write_open_kwargs) as fp:</span>
-</span><span id="line-133">    <span class="c1">#         return fp.write(v)</span>
-</span><span id="line-134">
-</span><span id="line-135">
-</span><span id="line-136"><span class="n">RelPathAioFileBytesReader</span> <span class="o">=</span> <span class="n">mk_relative_path_store</span><span class="p">(</span>
-</span><span id="line-137">    <span class="n">AioFileBytesReader</span><span class="p">,</span>
-</span><span id="line-138">    <span class="n">prefix_attr</span><span class="o">=</span><span class="s2">"rootdir"</span><span class="p">,</span>
-</span><span id="line-139">    <span class="vm">__name__</span><span class="o">=</span><span class="s2">"RelPathAioFileBytesReader"</span><span class="p">,</span>
-</span><span id="line-140"><span class="p">)</span>
-</span><span id="line-141">
-</span><span id="line-142">
+</span><span id="line-139">
+</span><span id="line-140">    <span class="c1"># @validate_key_and_raise_key_error_on_exception</span>
+</span><span id="line-141">    <span class="c1"># def __setitem__(self, k, v):</span>
+</span><span id="line-142">    <span class="c1">#     with open(k, **self._write_open_kwargs) as fp:</span>
+</span><span id="line-143">    <span class="c1">#         return fp.write(v)</span>
+</span><span id="line-144">
+</span><span id="line-145">
+</span><span id="line-146"><span class="n">RelPathAioFileBytesReader</span> <span class="o">=</span> <span class="n">mk_relative_path_store</span><span class="p">(</span>
+</span><span id="line-147">    <span class="n">AioFileBytesReader</span><span class="p">,</span>
+</span><span id="line-148">    <span class="n">prefix_attr</span><span class="o">=</span><span class="s2">"rootdir"</span><span class="p">,</span>
+</span><span id="line-149">    <span class="vm">__name__</span><span class="o">=</span><span class="s2">"RelPathAioFileBytesReader"</span><span class="p">,</span>
+</span><span id="line-150"><span class="p">)</span>
+</span><span id="line-151">
+</span><span id="line-152">
 <div class="viewcode-block" id="AioFileStringReader">
 <a class="viewcode-back" href="../_autosummary/aiofiledol.html#aiofiledol.AioFileStringReader">[docs]</a>
-</span><span id="line-143"><span class="k">class</span><span class="w"> </span><span class="nc">AioFileStringReader</span><span class="p">(</span><span class="n">AioFileBytesReader</span><span class="p">):</span>
-</span><span id="line-144">    <span class="n">_read_open_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">AioFileBytesReader</span><span class="o">.</span><span class="n">_read_open_kwargs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"rt"</span><span class="p">)</span></div>
+</span><span id="line-153"><span class="k">class</span><span class="w"> </span><span class="nc">AioFileStringReader</span><span class="p">(</span><span class="n">AioFileBytesReader</span><span class="p">):</span>
+</span><span id="line-154">    <span class="n">_read_open_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">AioFileBytesReader</span><span class="o">.</span><span class="n">_read_open_kwargs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"rt"</span><span class="p">)</span></div>
 
-</span><span id="line-145">
-</span><span id="line-146">
+</span><span id="line-155">
+</span><span id="line-156">
 <div class="viewcode-block" id="AioFileStringPersister">
 <a class="viewcode-back" href="../_autosummary/aiofiledol.html#aiofiledol.AioFileStringPersister">[docs]</a>
-</span><span id="line-147"><span class="k">class</span><span class="w"> </span><span class="nc">AioFileStringPersister</span><span class="p">(</span><span class="n">AioFileBytesPersister</span><span class="p">):</span>
-</span><span id="line-148">    <span class="n">_write_open_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">AioFileBytesPersister</span><span class="o">.</span><span class="n">_write_open_kwargs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"wt"</span><span class="p">)</span></div>
+</span><span id="line-157"><span class="k">class</span><span class="w"> </span><span class="nc">AioFileStringPersister</span><span class="p">(</span><span class="n">AioFileBytesPersister</span><span class="p">):</span>
+</span><span id="line-158">    <span class="n">_write_open_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">AioFileBytesPersister</span><span class="o">.</span><span class="n">_write_open_kwargs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"wt"</span><span class="p">)</span></div>
 
-</span><span id="line-149">
-</span><span id="line-150">
-</span><span id="line-151"><span class="n">RelPathFileStringReader</span> <span class="o">=</span> <span class="n">mk_relative_path_store</span><span class="p">(</span>
-</span><span id="line-152">    <span class="n">AioFileStringReader</span><span class="p">,</span>
-</span><span id="line-153">    <span class="n">prefix_attr</span><span class="o">=</span><span class="s2">"rootdir"</span><span class="p">,</span>
-</span><span id="line-154">    <span class="vm">__name__</span><span class="o">=</span><span class="s2">"RelPathFileStringReader"</span><span class="p">,</span>
-</span><span id="line-155"><span class="p">)</span>
+</span><span id="line-159">
+</span><span id="line-160">
+</span><span id="line-161"><span class="n">RelPathFileStringReader</span> <span class="o">=</span> <span class="n">mk_relative_path_store</span><span class="p">(</span>
+</span><span id="line-162">    <span class="n">AioFileStringReader</span><span class="p">,</span>
+</span><span id="line-163">    <span class="n">prefix_attr</span><span class="o">=</span><span class="s2">"rootdir"</span><span class="p">,</span>
+</span><span id="line-164">    <span class="vm">__name__</span><span class="o">=</span><span class="s2">"RelPathFileStringReader"</span><span class="p">,</span>
+</span><span id="line-165"><span class="p">)</span>
 </span></code></pre></div>
     </div></div>
           </main>
@@ -343,7 +353,7 @@
 </footer>
     </div>
     
-    <script src="../_static/documentation_options.js?v=bbaf98b3"></script>
+    <script src="../_static/documentation_options.js?v=53b53b71"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>

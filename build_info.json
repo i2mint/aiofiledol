@@ -1,32 +1,32 @@
 {
   "schema_version": 1,
-  "built_at": "2026-09-22T12:50:30Z",
+  "built_at": "2026-09-22T14:15:23Z",
   "package": {
     "name": "aiofiledol",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "display_name": "aiofiledol",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "14a2ad8e2f99d834c3743d8aaec64d1285d74693",
-    "short_commit": "14a2ad8",
+    "commit": "d11723bfedc36ba983f426ca07559b93d4bd0c97",
+    "short_commit": "d11723b",
     "branch": "master",
     "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/aiofiledol",
-    "commit_url": "https://github.com/i2mint/aiofiledol/commit/14a2ad8e2f99d834c3743d8aaec64d1285d74693",
+    "commit_url": "https://github.com/i2mint/aiofiledol/commit/d11723bfedc36ba983f426ca07559b93d4bd0c97",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/aiofiledol",
-    "sha": "14a2ad8e2f99d834c3743d8aaec64d1285d74693",
+    "sha": "d11723bfedc36ba983f426ca07559b93d4bd0c97",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "35729484723",
-    "run_url": "https://github.com/i2mint/aiofiledol/actions/runs/35729484723",
+    "run_id": "35738847715",
+    "run_url": "https://github.com/i2mint/aiofiledol/actions/runs/35738847715",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -60,11 +60,11 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.0.7",
+    "latest": "0.0.8",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/aiofiledol && cd aiofiledol\ngit checkout 14a2ad8e2f99d834c3743d8aaec64d1285d74693\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/aiofiledol && cd aiofiledol\ngit checkout d11723bfedc36ba983f426ca07559b93d4bd0c97\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,
