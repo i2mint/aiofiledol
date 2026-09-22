@@ -6,7 +6,9 @@ aiofile (async filesys operations) with a simple (dict-like or list-like) interf
 import asyncio
 import os
 
+from dol import wrapped_self
 from dol.base import KvReader, KvPersister
+from dol.dig import inner_most_key
 from dol.paths import mk_relative_path_store
 from dol.filesys import (
     FileCollection,
@@ -20,6 +22,22 @@ _dflt_not_valid_error_msg = (
     "Key not valid (usually because does not exist or access not permitted): {}"
 )
 _dflt_not_found_error_msg = "Key not found: {}"
+
+
+def _resolve_key(store, k):
+    """The leaf-level filepath for ``k``, resolved through any wrapping layers.
+
+    ``mk_relative_path_store`` (and dol's wrapping machinery generally) wraps by
+    delegation: a method defined on the wrapped class is reached bound to the INNER
+    store, but with the OUTER, un-transformed key. Handing that key straight to
+    ``AIOFile`` would resolve it against the process CWD instead of ``rootdir``.
+    Walking the wrapper chain with ``inner_most_key`` recovers the real filepath.
+
+    This REPLACES ``store._id_of_key(k)`` -- it walks the whole chain including the
+    leaf, so the two must never be composed. For an un-wrapped store no layer defines
+    ``_id_of_key`` and ``k`` is returned verbatim.
+    """
+    return inner_most_key(wrapped_self(store), k, default=k)
 
 
 class AioFileBytesReader(FileCollection, KvReader):
@@ -46,7 +64,7 @@ class AioFileBytesReader(FileCollection, KvReader):
         b'hello world'
         """
 
-        async with AIOFile(k, **self._read_open_kwargs) as fp:
+        async with AIOFile(_resolve_key(self, k), **self._read_open_kwargs) as fp:
             v = await fp.read()  # Question: Is it faster if we just did `return await fp.read(), instead of assign?
         return v
         # with open(k, **self._read_open_kwargs) as fp:
@@ -102,7 +120,7 @@ class AioFileBytesPersister(LocalFileDeleteMixin, AioFileBytesReader, KvPersiste
         >>> asyncio.run(s.aget(k))  # read it back (async reader; __getitem__ is disabled)
         b'bar'
         """
-        async with AIOFile(k, **self._write_open_kwargs) as fp:
+        async with AIOFile(_resolve_key(self, k), **self._write_open_kwargs) as fp:
             await fp.write(v)
             await fp.fsync()
 
