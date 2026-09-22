@@ -33,7 +33,7 @@ classifiers = [
     "Framework :: AsyncIO",
 ]
 dependencies = [
-    "dol",
+    "dol>=0.3.50",  # wrapped_self (dol#18) first shipped in 0.3.50
     "aiofile",
 ]
 

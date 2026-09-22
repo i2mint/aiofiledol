@@ -36,7 +36,17 @@ def _resolve_key(store, k):
     This REPLACES ``store._id_of_key(k)`` -- it walks the whole chain including the
     leaf, so the two must never be composed. For an un-wrapped store no layer defines
     ``_id_of_key`` and ``k`` is returned verbatim.
+
+    A key the store itself already accepts (a path under its ``rootdir``) is also
+    taken verbatim. ``wrapped_self`` cannot tell whether a method was reached through
+    a wrapper or called on the inner store directly, so without this guard merely
+    WRAPPING an instance -- ``wrap_kvs(bare_store, ...)`` -- would make that instance's
+    own absolute-key ``aget``/``asetitem`` push the key through the wrapper's
+    ``id_of_key`` a second time (``rootdir + rootdir + name``). Relative keys never
+    match an absolute ``rootdir`` pattern, so they still get resolved.
     """
+    if store.is_valid_key(k):
+        return k
     return inner_most_key(wrapped_self(store), k, default=k)
 
 
