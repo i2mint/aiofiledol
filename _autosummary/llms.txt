@@ -1,0 +1,12 @@
+# aiofiledol
+
+> aiofile (async filesys operations) with a simple (dict-like or list-like) interface
+
+
+## Pages in this subsection
+
+- [aiofiledol](aiofiledol.html.md): aiofile (async filesys operations) with a simple (dict-like or list-like) interface
+
+## Optional
+
+- [Top-level llms.txt](../llms.txt): Complete documentation index.

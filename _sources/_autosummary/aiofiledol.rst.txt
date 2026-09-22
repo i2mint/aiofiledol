@@ -1,0 +1,17 @@
+﻿aiofiledol
+==========
+
+.. automodule:: aiofiledol
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AioFileBytesPersister
+      AioFileBytesReader
+      AioFileStringPersister
+      AioFileStringReader
+      RelPathAioFileBytesReader
+      RelPathFileStringReader
+   

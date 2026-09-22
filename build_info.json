@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "built_at": "2026-09-22T12:50:30Z",
+  "package": {
+    "name": "aiofiledol",
+    "version": "0.0.7",
+    "display_name": "aiofiledol",
+    "source": "pyproject.toml"
+  },
+  "git": {
+    "available": true,
+    "commit": "14a2ad8e2f99d834c3743d8aaec64d1285d74693",
+    "short_commit": "14a2ad8",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "remote_url": "https://github.com/i2mint/aiofiledol",
+    "commit_url": "https://github.com/i2mint/aiofiledol/commit/14a2ad8e2f99d834c3743d8aaec64d1285d74693",
+    "error": null
+  },
+  "ci": {
+    "provider": "github",
+    "repository": "i2mint/aiofiledol",
+    "sha": "14a2ad8e2f99d834c3743d8aaec64d1285d74693",
+    "sha_in_history": true,
+    "ref": "refs/heads/master",
+    "ref_name": "master",
+    "run_id": "35729484723",
+    "run_url": "https://github.com/i2mint/aiofiledol/actions/runs/35729484723",
+    "server_url": "https://github.com"
+  },
+  "tools": {
+    "epythet": "0.2.12",
+    "sphinx": "9.1.0",
+    "docutils": "0.22.4",
+    "python": "3.12.14"
+  },
+  "config": {
+    "theme": "auto",
+    "html_theme": "sphinxawesome_theme",
+    "accent": "#00668a",
+    "mode": "auto",
+    "api_generator": "autosummary",
+    "ignore": [
+      "tests/",
+      "scrap/",
+      "examples/"
+    ],
+    "agent_outputs": true,
+    "aggregates": [
+      "md"
+    ],
+    "ai_artifacts": true,
+    "provenance": true,
+    "docs_dir": "docsrc"
+  },
+  "site": {
+    "modules_documented": 1,
+    "objects_documented": 12
+  },
+  "pypi": {
+    "checked": true,
+    "latest": "0.0.7",
+    "relation": "same",
+    "error": null
+  },
+  "reproduce": "git clone https://github.com/i2mint/aiofiledol && cd aiofiledol\ngit checkout 14a2ad8e2f99d834c3743d8aaec64d1285d74693\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "warnings": [],
+  "alignment": {
+    "aligned": true,
+    "notes": []
+  }
+}

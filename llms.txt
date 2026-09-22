@@ -1,0 +1,19 @@
+# aiofiledol
+
+> aiofile (async filesys operations) with a simple (dict-like or list-like) interface
+
+
+## Pages
+
+- [aiofiledol](index.html.md): aiofile (async filesys operations) with a simple (dict-like or list-like) interface
+- [API reference](api.html.md): | &#96;aiofiledol&#96;   | aiofile (async filesys operations) with a simple (dict-like or list-like) interfa...
+- [aiofiledol](_autosummary/aiofiledol.html.md): aiofile (async filesys operations) with a simple (dict-like or list-like) interface
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-09-22 12:50 UTC&#42;&#42; from commit &lt;a href="https://github.com/i2m...
+
+## Optional
+
+- [aiofiledol.md](aiofiledol.md): Complete documentation in a single file.
+
+## Build
+
+- [build_info.json](build_info.json): build provenance (commit, version, tool versions, whether the docs match the package)
