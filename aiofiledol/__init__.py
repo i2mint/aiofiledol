@@ -42,7 +42,7 @@ def _resolve_key(store, k):
     a wrapper or called on the inner store directly, so without this guard merely
     WRAPPING an instance -- ``wrap_kvs(bare_store, ...)`` -- would make that instance's
     own absolute-key ``aget``/``asetitem`` push the key through the wrapper's
-    ``id_of_key`` a second time (``rootdir + rootdir + name``). Relative keys never
+    ``key_encoder`` a second time (``rootdir + rootdir + name``). Relative keys never
     match an absolute ``rootdir`` pattern, so they still get resolved.
     """
     if store.is_valid_key(k):

@@ -81,7 +81,7 @@ def test_bare_store_keeps_absolute_keys_after_being_instance_wrapped(
     """Wrapping an instance must not change what that instance's own methods do.
 
     ``wrapped_self`` climbs from the bare store to any live wrapper of it, so the
-    bare store's absolute key used to be pushed through the wrapper's ``id_of_key``
+    bare store's absolute key used to be pushed through the wrapper's ``key_encoder``
     too, reading ``rootdir + rootdir + name``.
     """
     from dol import wrap_kvs
@@ -92,8 +92,8 @@ def test_bare_store_keeps_absolute_keys_after_being_instance_wrapped(
     bare = AioFileBytesReader(rootdir, max_levels=0)
     wrapped = wrap_kvs(
         bare,
-        id_of_key=lambda k: rootdir + k,
-        key_of_id=lambda _id: _id[len(rootdir) :],
+        key_encoder=lambda k: rootdir + k,
+        key_decoder=lambda _id: _id[len(rootdir) :],
     )
 
     assert asyncio.run(wrapped.aget(KEY)) == REAL  # through the wrapper
@@ -109,8 +109,8 @@ def test_bare_persister_writes_where_told_after_being_instance_wrapped(tmp_path)
     bare = AioFileBytesPersister(rootdir, max_levels=0)
     _wrapped = wrap_kvs(
         bare,
-        id_of_key=lambda k: rootdir + k,
-        key_of_id=lambda _id: _id[len(rootdir) :],
+        key_encoder=lambda k: rootdir + k,
+        key_decoder=lambda _id: _id[len(rootdir) :],
     )
 
     target = os.path.join(rootdir, KEY)
