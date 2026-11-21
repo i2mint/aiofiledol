@@ -1,39 +1,39 @@
 {
   "schema_version": 1,
-  "built_at": "2026-09-22T14:15:23Z",
+  "built_at": "2026-11-21T17:28:22Z",
   "package": {
     "name": "aiofiledol",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "display_name": "aiofiledol",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "d11723bfedc36ba983f426ca07559b93d4bd0c97",
-    "short_commit": "d11723b",
+    "commit": "ff6f1efd9407f1fc56e792386b5a8408d2cab738",
+    "short_commit": "ff6f1ef",
     "branch": "master",
     "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/aiofiledol",
-    "commit_url": "https://github.com/i2mint/aiofiledol/commit/d11723bfedc36ba983f426ca07559b93d4bd0c97",
+    "commit_url": "https://github.com/i2mint/aiofiledol/commit/ff6f1efd9407f1fc56e792386b5a8408d2cab738",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/aiofiledol",
-    "sha": "d11723bfedc36ba983f426ca07559b93d4bd0c97",
+    "sha": "ff6f1efd9407f1fc56e792386b5a8408d2cab738",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "35738847715",
-    "run_url": "https://github.com/i2mint/aiofiledol/actions/runs/35738847715",
+    "run_id": "44930106351",
+    "run_url": "https://github.com/i2mint/aiofiledol/actions/runs/44930106351",
     "server_url": "https://github.com"
   },
   "tools": {
-    "epythet": "0.2.12",
-    "sphinx": "9.1.0",
+    "epythet": "0.2.22",
+    "sphinx": "9.1.1",
     "docutils": "0.22.4",
-    "python": "3.12.14"
+    "python": "3.12.16"
   },
   "config": {
     "theme": "auto",
@@ -60,14 +60,16 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.0.8",
-    "relation": "same",
+    "latest": "0.0.10",
+    "relation": "behind",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/aiofiledol && cd aiofiledol\ngit checkout d11723bfedc36ba983f426ca07559b93d4bd0c97\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/aiofiledol && cd aiofiledol\ngit checkout ff6f1efd9407f1fc56e792386b5a8408d2cab738\npip install \"epythet==0.2.22\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
-    "aligned": true,
-    "notes": []
+    "aligned": false,
+    "notes": [
+      "The documented version (0.0.9) is behind the latest release on PyPI (0.0.10): `pip install aiofiledol` gives newer code than these docs describe."
+    ]
   }
 }

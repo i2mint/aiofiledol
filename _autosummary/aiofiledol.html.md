@@ -53,7 +53,7 @@ True
 b'bar'
 ```
 
-### *class* aiofiledol.AioFileBytesReader(rootdir, subpath='', pattern_for_field=None, max_levels=None, , include_hidden=False, assert_rootdir_existence=False)
+### *class* aiofiledol.AioFileBytesReader(rootdir, subpath='', pattern_for_field=None, max_levels=None, , include_hidden=False, assert_rootdir_existence=False, allow_escape=False)
 
 Bases: `FileCollection`, `KvReader`
 
@@ -81,11 +81,11 @@ b'hello world'
 
 Bases: [`AioFileBytesPersister`](#aiofiledol.AioFileBytesPersister)
 
-### *class* aiofiledol.AioFileStringReader(rootdir, subpath='', pattern_for_field=None, max_levels=None, , include_hidden=False, assert_rootdir_existence=False)
+### *class* aiofiledol.AioFileStringReader(rootdir, subpath='', pattern_for_field=None, max_levels=None, , include_hidden=False, assert_rootdir_existence=False, allow_escape=False)
 
 Bases: [`AioFileBytesReader`](#aiofiledol.AioFileBytesReader)
 
-### *class* aiofiledol.RelPathAioFileBytesReader(rootdir, subpath='', pattern_for_field=None, max_levels=None, , include_hidden=False, assert_rootdir_existence=False)
+### *class* aiofiledol.RelPathAioFileBytesReader(rootdir, subpath='', pattern_for_field=None, max_levels=None, , include_hidden=False, assert_rootdir_existence=False, allow_escape=False)
 
 Bases: `PrefixRelativizationMixin`, `Store`
 
@@ -97,7 +97,7 @@ Bases: `PrefixRelativizationMixin`, `Store`
 
 `validate_key` on the inner key – see `mk_relative_path_store`.
 
-### *class* aiofiledol.RelPathFileStringReader(rootdir, subpath='', pattern_for_field=None, max_levels=None, , include_hidden=False, assert_rootdir_existence=False)
+### *class* aiofiledol.RelPathFileStringReader(rootdir, subpath='', pattern_for_field=None, max_levels=None, , include_hidden=False, assert_rootdir_existence=False, allow_escape=False)
 
 Bases: `PrefixRelativizationMixin`, `Store`
 
